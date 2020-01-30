@@ -1,1 +1,1 @@
-web: cd lunchroulette && gunicorn wsgi:app
+web: gunicorn lunchroulette.wsgi:app

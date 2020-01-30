@@ -1,7 +1,8 @@
 from flask import Flask, request, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from .models import SlackAccessToken, RouletteMessage
+from lunchroulette.models import SlackAccessToken, RouletteMessage
+from lunchroulette.models import db
 import psycopg2
 import slack
 import os
@@ -15,16 +16,13 @@ def create_app():
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    from .models import db
     db.init_app(app)
 
     return app
 
 app = create_app()
 
-from .models import db as _db
-migrate = Migrate(app, _db)
+migrate = Migrate(app, db)
 
 @app.route("/begin_auth", methods=["GET"])
 def pre_install():
@@ -50,7 +48,7 @@ def post_install():
     sat = SlackAccessToken()
     sat.team_id = team_id
     sat.access_token = bot_access_token
-    db.session.add(sat)
+    db.session.merge(sat)
     db.session.commit()
 
     return "Auth complete!"
