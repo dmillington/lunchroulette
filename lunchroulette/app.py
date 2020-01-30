@@ -1,21 +1,30 @@
 from flask import Flask, request, url_for
 from flask_sqlalchemy import SQLAlchemy
-from models import SlackAccessToken, RouletteMessage
+from flask_migrate import Migrate
+from .models import SlackAccessToken, RouletteMessage
 import psycopg2
 import slack
 import os
 import random
 
-CLIENT_ID = os.environ['SLACK_CLIENT_ID']
-CLIENT_SECRET = os.environ['SLACK_CLIENT_SECRET']
-OAUTH_SCOPE = os.environ['SLACK_BOT_SCOPE']
+CLIENT_ID = os.getenv('SLACK_CLIENT_ID', '')
+CLIENT_SECRET = os.getenv('SLACK_CLIENT_SECRET', '')
+OAUTH_SCOPE = os.getenv('SLACK_BOT_SCOPE', '')
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+def create_app():
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# TODO: cleanup code and get in app store
+    from .models import db
+    db.init_app(app)
+
+    return app
+
+app = create_app()
+
+from .models import db as _db
+migrate = Migrate(app, _db)
 
 @app.route("/begin_auth", methods=["GET"])
 def pre_install():
