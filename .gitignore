@@ -105,3 +105,6 @@ venv.bak/
 
 # sqlite3 app.db
 app.db
+
+# vim swap files
+*.swp
