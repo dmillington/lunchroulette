@@ -8,9 +8,9 @@ import slack
 import os
 import random
 
-CLIENT_ID = os.getenv('SLACK_CLIENT_ID', '')
-CLIENT_SECRET = os.getenv('SLACK_CLIENT_SECRET', '')
-OAUTH_SCOPE = os.getenv('SLACK_BOT_SCOPE', '')
+CLIENT_ID = os.getenv('SLACK_CLIENT_ID', 'NOCLIENTID')
+CLIENT_SECRET = os.getenv('SLACK_CLIENT_SECRET', 'NOCLIENTSECRET')
+OAUTH_SCOPE = os.getenv('SLACK_BOT_SCOPE', 'NOBOTSCOPE')
 
 def create_app():
     app = Flask(__name__)
@@ -28,7 +28,7 @@ migrate = Migrate(app, db)
 def pre_install():
     return f'<a href="https://slack.com/oauth/authorize?scope={ OAUTH_SCOPE }&client_id={ CLIENT_ID }">Add to Slack</a>'
 
-@app.route("/finish_auth", methods=["GET", "POST"])
+@app.route("/finish_auth", methods=["GET"])
 def post_install():
     # Retrieve the auth code from the request params
     auth_code = request.args['code']
