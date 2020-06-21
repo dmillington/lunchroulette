@@ -41,12 +41,28 @@ def test_finish_auth_new_token(mock_oa, client, session):
     assert tokens[0].team_id == 'a'
     assert tokens[0].access_token == 'c'
 
-def test_finish_auth_no_authcode(client):
-    pass
-
-def test_finish_auth_bad_slack_response(client):
-    pass
-
-
 # test /start_roulette
+@patch('slack.WebClient.chat_postMessage')
+def test_start_roulette_success(mock_pm, client, session):
+    mock_pm.return_value = dict(channel='C012AB3CD', ts='1234567890.123456')
+
+    session.add(SlackAccessToken(team_id='T12345', access_token='xoxa-access-token-string'))
+    session.commit()
+    resp = client.post('/start_roulette', data=dict(team_id='T12345', channel_id='C012AB3CD'))
+    mock_pm.assert_called()
+
+    assert resp.status_code == 200
+    messages = session.query(RouletteMessage).all()
+    assert len(messages) == 1
+    assert messages[0].channel == 'C012AB3CD'
+    assert messages[0].timestamp == '1234567890.123456'
+
+def test_start_roulette_already_started(client, session):
+    pass
+
 # test /end_roulette
+def test_end_roulette_success(client, session):
+    pass
+
+def test_end_roulette_not_started(client, session):
+    pass
