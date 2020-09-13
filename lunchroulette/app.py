@@ -71,7 +71,8 @@ def start_roulette():
     client = slack.WebClient(sat.access_token)
 
     if db.session.query(RouletteMessage).filter(RouletteMessage.channel==channel_id).count() > 0:
-        return ('There is already a roulette happening in this channel!', 200)
+        text = 'There is already a roulette happening in this channel!'
+        return (text, 500, {'error': text})
 
     # post message to channel starting roulette
     response = client.chat_postMessage(channel=channel_id, text="Starting a lunch roulette! Reaction to this message if you're in!")
