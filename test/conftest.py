@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 def app(request):
     return _app
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def db(app, request):
     with app.app_context():
         _db.drop_all()
