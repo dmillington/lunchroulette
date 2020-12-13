@@ -100,7 +100,8 @@ def end_roulette():
     try:
         message = db.session.query(RouletteMessage).filter(RouletteMessage.channel==channel_id).one()
     except:
-        return ('No roulette started. Try /lr_start first', 200)
+        text = 'No roulette started. Try /lr_start first'
+        return (text, 500, {'error': text})
     
     response = client.reactions_get(channel=message.channel, timestamp=message.timestamp)
 
