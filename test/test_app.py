@@ -69,8 +69,31 @@ def test_start_roulette_already_started(mock_pm, client, session):
     assert resp.headers.get('error') == 'There is already a roulette happening in this channel!'
 
 # test /end_roulette
-def test_end_roulette_success(client, session):
-    pass
+@patch('slack.WebClient.chat_postMessage')
+@patch('slack.WebClient.conversations_open')
+@patch('slack.WebClient.reactions_get')
+def test_end_roulette_success(mock_reactions, mock_conversations_open, mock_pm, client, session):
+    mock_reactions.return_value = dict(message=dict(reactions=[dict(users=['ABCD','EFGH'])]), ts='1234567890.123456')
+    mocked_channel_id = 'C012AB3CD'
+    mocked_group_channel_id = 'D012AB3CD'
+    mock_conversations_open.return_value = dict(channel=dict(id=mocked_group_channel_id))
 
-def test_end_roulette_not_started(client, session):
-    pass
+    session.add(SlackAccessToken(team_id='T12345', access_token='xoxa-access-token-string'))
+    session.add(RouletteMessage(channel=mocked_channel_id, timestamp='1234567890.123456'))
+    session.commit()
+
+    resp = client.post('/end_roulette', data=dict(team_id='T12345', channel_id=mocked_channel_id))
+    mock_pm.assert_called_once_with(channel=mocked_group_channel_id, text="Hi! You all are going to get Lunch! You can use this channel to coordinate logistics.")
+    assert resp.get_data() == b'Roulette ended! Matching people for lunch now. Participants will receive a group DM with their lunch buddies.'
+
+@patch('slack.WebClient.chat_postMessage')
+def test_end_roulette_not_started(mock_pm, client, session):
+    mocked_channel_id = 'C012AB3CD'
+
+    session.add(SlackAccessToken(team_id='T12345', access_token='xoxa-access-token-string'))
+    session.commit()
+
+    resp = client.post('/end_roulette', data=dict(team_id='T12345', channel_id=mocked_channel_id))
+    mock_pm.assert_not_called()
+    assert resp.status_code == 500
+    assert resp.headers.get('error') == 'No roulette started. Try /lr_start first'
